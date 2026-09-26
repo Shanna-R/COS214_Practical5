@@ -2,7 +2,7 @@
 
 ## CampusGuard
 
-CampusGuard is an integrated emergency-response coordination platform developed for COS 214 Practical 5. The platform models a campus safety management ecosystem, allowing security teams, medical responders, facilities staff, and legacy access systems to respond dynamically to critical campus events. It supports incident lifecycle management, operator command execution, response team coordination, and legacy integration through an automated workflow.
+CampusGuard is an integrated emergency-response coordination platform. The platform models a campus safety management ecosystem, allowing security teams, medical responders, facilities staff, and legacy access systems to respond dynamically to critical campus events. It supports incident lifecycle management, operator command execution, response team coordination, and legacy integration through an automated workflow.
 
 The project is implemented in C++11 and demonstrates six Gang of Four (GoF) design patterns:
 * **State** 
