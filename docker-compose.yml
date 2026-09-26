@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  campusguard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: campusguard_app
+    stdin_open: true  # Keeps standard input open (useful for interactive CLI applications)
+    tty: true         # Allocates a pseudo-TTY so terminal formatting and interactions work cleanly
+    
