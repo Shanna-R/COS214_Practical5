@@ -60,7 +60,7 @@ Encapsulates operator actions (such as `DispatchUnitCommand`, `SecureAreaCommand
 Coordinates communication among response teams (`SecurityTeam`, `MedicalTeam`, `FacilitiesTeam`, `CommunicationService`) through a central `CampusMediator`, eliminating direct many-to-many dependencies between individual teams.
 
 ### Adapter
-Translates modern high-level commands (e.g., `lockArea("Engineering Building")`) into the incompatible parameter interfaces expected by legacy systems (e.g., `secureZone(17)`), integrating `LegacyAccessSystem` into the `AccessControl` interface.
+Translates modern high-level commands into the incompatible parameter interfaces expected by legacy systems, integrating `LegacyAccessSystem` into the `AccessControl` interface.
 
 ### Facade
 Provides a unified, simplified entry point (`EmergencyFacade`) that orchestrates complex multi-subsystem workflows—activating incidents, dispatching teams, locking down facilities, and broadcasting alerts—with a single method call.
