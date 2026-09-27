@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "Incident.h"
@@ -114,23 +115,21 @@ int main()
 
 
     // =====================================================
-    // STATE PATTERN
+    // RESPONSE COMPONENTS
+    // (created early so they can also observe the incident)
     // =====================================================
 
     std::cout << BOLD_MAGENTA
-              << "\n--- STATE PATTERN ---\n"
+              << "\n--- RESPONSE TEAMS ---\n"
               << RESET;
 
-    std::cout << YELLOW
-              << "[*] Activating fire incident...\n"
-              << RESET;
-
-    fire.activate();
+    SecurityTeam security("Campus Security");
+    MedicalTeam medicalTeam("Medical Response");
+    FacilitiesTeam facilities("Facilities Team");
+    CommunicationService comms("Communication Service");
 
     std::cout << GREEN
-              << "[+] Current state: "
-              << fire.getStateName()
-              << "\n"
+              << "[+] Created SecurityTeam, MedicalTeam, FacilitiesTeam, CommunicationService.\n"
               << RESET;
 
 
@@ -143,9 +142,44 @@ int main()
               << RESET;
 
     std::cout << CYAN
-              << "[i] Response components are registered as observers "
-              << "through the integrated system.\n"
+              << "[i] Registering response components as observers of Incident 101...\n"
               << RESET;
+
+    fire.attach(&security);
+    fire.attach(&medicalTeam);
+    fire.attach(&facilities);
+    fire.attach(&comms);
+
+    // Detaching one observer so the "erase" branch of detach() is exercised too.
+    fire.detach(&comms);
+    fire.attach(&comms);
+
+
+    // =====================================================
+    // STATE PATTERN
+    // =====================================================
+
+    std::cout << BOLD_MAGENTA
+              << "\n--- STATE PATTERN ---\n"
+              << RESET;
+
+    std::cout << YELLOW
+              << "[*] Activating fire incident (this will also notify observers)...\n"
+              << RESET;
+
+    fire.activate();
+
+    std::cout << GREEN
+              << "[+] Current state: "
+              << fire.getStateName()
+              << "\n"
+              << RESET;
+
+    std::cout << YELLOW
+              << "[*] Activating an already-active incident (invalid transition)...\n"
+              << RESET;
+
+    fire.activate();
 
 
     // =====================================================
@@ -162,50 +196,19 @@ int main()
               << "[+] CampusMediator created.\n"
               << RESET;
 
+    mediator.registerComponent(&security);
+    mediator.registerComponent(&medicalTeam);
+    mediator.registerComponent(&facilities);
+    mediator.registerComponent(&comms);
 
-    // =====================================================
-    // RESPONSE COMPONENTS
-    // =====================================================
+    // Invalid registrations, exercised deliberately for coverage:
+    mediator.registerComponent(nullptr);                 // null component
+    mediator.registerComponent(&security);                // duplicate role
 
-    std::cout << BOLD_MAGENTA
-              << "\n--- RESPONSE TEAMS ---\n"
-              << RESET;
-
-    /*
-     * Create the response components here using the
-     * constructors defined in your current .h files.
-     *
-     * They should include:
-     *
-     * SecurityTeam
-     * MedicalTeam
-     * FacilitiesTeam
-     * CommunicationService
-     *
-     * Then register them with the CampusMediator.
-     */
-
-
-    // =====================================================
-    // COMMAND PATTERN
-    // =====================================================
-
-    std::cout << BOLD_MAGENTA
-              << "\n--- COMMAND PATTERN ---\n"
-              << RESET;
-
-    /*
-     * Create a CommandInvoker.
-     *
-     * Execute at least THREE concrete commands:
-     *
-     * 1. DispatchUnitCommand
-     * 2. SecureAreaCommand
-     * 3. EmergencyAlertCommand
-     *
-     * The exact constructor calls must match the current
-     * command class headers.
-     */
+    // A second, unregistered security team, wired to the same mediator
+    // by hand, to exercise the "rejected / unregistered sender" path.
+    SecurityTeam rogueSecurity("Rogue Security Unit");
+    rogueSecurity.setMediator(&mediator);
 
 
     // =====================================================
@@ -216,21 +219,76 @@ int main()
               << "\n--- ADAPTER PATTERN ---\n"
               << RESET;
 
-    /*
-     * Create the legacy access system.
-     *
-     * Create AccessControlAdapter using the legacy system.
-     *
-     * Then perform a real lock/unlock operation.
-     *
-     * Example flow:
-     *
-     * LegacyAccessSystem
-     *        ↑
-     * AccessControlAdapter
-     *        ↑
-     * EmergencyFacade / CampusGuard
-     */
+    LegacyAccessSystem legacySystem;
+    AccessControlAdapter accessAdapter(&legacySystem);
+
+    std::cout << GREEN
+              << "[+] LegacyAccessSystem wrapped by AccessControlAdapter.\n"
+              << RESET;
+
+    facilities.setAccessControl(&accessAdapter);
+
+
+    // =====================================================
+    // COMMAND PATTERN
+    // =====================================================
+
+    std::cout << BOLD_MAGENTA
+              << "\n--- COMMAND PATTERN ---\n"
+              << RESET;
+
+    CommandInvoker invoker;
+
+    // Rejecting a null command (invalid path).
+    invoker.execute(std::unique_ptr<Command>(nullptr));
+
+    // 1. Dispatch security to the fire.
+    invoker.execute(std::unique_ptr<Command>(
+        new DispatchUnitCommand(&security, 101, "Engineering Building")));
+
+    // 2. Secure the affected area (goes through the Adapter -> Legacy system).
+    invoker.execute(std::unique_ptr<Command>(
+        new SecureAreaCommand(&facilities, 101, "Engineering Building")));
+
+    // 3. Issue an emergency alert.
+    invoker.execute(std::unique_ptr<Command>(
+        new EmergencyAlertCommand(&comms, 101, "Engineering Building",
+                                   "Evacuate the building immediately")));
+
+    invoker.printHistory();
+
+    std::cout << YELLOW
+              << "\n[*] Repeating the same operations to trigger invalid-operation checks...\n"
+              << RESET;
+
+    // Already deployed / already secured / already alerted -> all fail and
+    // are therefore never added to the invoker's history.
+    invoker.execute(std::unique_ptr<Command>(
+        new DispatchUnitCommand(&security, 101, "Engineering Building")));
+    invoker.execute(std::unique_ptr<Command>(
+        new SecureAreaCommand(&facilities, 101, "Engineering Building")));
+    invoker.execute(std::unique_ptr<Command>(
+        new EmergencyAlertCommand(&comms, 101, "Engineering Building",
+                                   "Evacuate the building immediately")));
+
+    // The rogue (unregistered) security unit reports independently -> the
+    // mediator should reject it.
+    rogueSecurity.dispatch(101, "North Car Park");
+
+    std::cout << YELLOW
+              << "\n[*] Cancelling commands via the invoker...\n"
+              << RESET;
+
+    invoker.cancelLast();      // undoes the emergency alert (clearAlert)
+    invoker.cancel(1);         // undoes the secure-area command (reopenArea)
+    invoker.cancel(1);         // area already reopened -> invalid, nothing to cancel
+    invoker.cancel(0);         // undoes the dispatch command (recall)
+    invoker.cancel(999);       // out-of-range index -> invalid
+
+    invoker.printHistory();
+
+    std::cout << "[i] Last dispatch command executed? "
+              << std::boolalpha << security.isDeployed() << "\n";
 
 
     // =====================================================
@@ -241,32 +299,37 @@ int main()
               << "\n--- FACADE PATTERN ---\n"
               << RESET;
 
-    /*
-     * EmergencyFacade should coordinate:
-     *
-     * DispatchService
-     * BuildingAccessService
-     * AlertService
-     *
-     * This should result in 3+ subsystem operations.
-     */
+    EmergencyFacade facade(&accessAdapter);
+    facade.handleSevereEmergency("Science Block", "Fire");
 
 
     // =====================================================
-    // INVALID OPERATION
+    // DIRECT SUBSYSTEM / EDGE-CASE COVERAGE
     // =====================================================
 
-    std::cout << BOLD_RED
-              << "\n--- INVALID OPERATION TEST ---\n"
+    std::cout << BOLD_MAGENTA
+              << "\n--- ADDITIONAL EDGE CASES ---\n"
               << RESET;
 
-    std::cout << RED
-              << "[!] Attempting to activate a resolved incident...\n"
-              << RESET;
+    // Dispatching with an empty location (invalid).
+    security.dispatch(101, "");
 
-    fire.resolve();
+    // Recalling a unit that was never dispatched (invalid).
+    medicalTeam.recall();
 
-    fire.activate();
+    // CommunicationService cannot itself be dispatched as a field unit.
+    comms.dispatch(101, "Engineering Building");
+
+    // Clearing an alert that was never issued (invalid).
+    comms.clearAlert(101, "Student Centre");
+
+    // Reopening an area that was never secured (invalid).
+    facilities.reopenArea(101, "Student Centre");
+
+    // A response component that is never wired to a mediator: announcing
+    // still works, it just has nobody to notify.
+    SecurityTeam standaloneUnit("Standby Unit");
+    standaloneUnit.dispatch(150, "Remote Sports Field");
 
 
     // =====================================================
@@ -299,8 +362,8 @@ int main()
               << medical.getStateName()
               << "\n";
 
-
-    // Activate second incident
+    medical.attach(&medicalTeam);
+    medical.attach(&security);
 
     std::cout << YELLOW
               << "\n[*] Activating medical incident...\n"
@@ -323,10 +386,19 @@ int main()
               << "\n--- MEDICAL RESPONSE COMMAND ---\n"
               << RESET;
 
-    /*
-     * Use the CommandInvoker and a concrete command to
-     * dispatch/coordinate the medical response.
-     */
+    CommandInvoker medicalInvoker;
+
+    // Cancelling with an empty history (invalid).
+    medicalInvoker.cancelLast();
+
+    medicalInvoker.execute(std::unique_ptr<Command>(
+        new DispatchUnitCommand(&medicalTeam, 102, "Student Centre")));
+
+    medicalInvoker.execute(std::unique_ptr<Command>(
+        new EmergencyAlertCommand(&comms, 102, "Student Centre",
+                                   "Medical response in progress")));
+
+    medicalInvoker.printHistory();
 
 
     // =====================================================
@@ -344,6 +416,18 @@ int main()
               << medical.getStateName()
               << "\n"
               << RESET;
+
+    std::cout << YELLOW
+              << "[*] Resolving an already-resolved incident (invalid)...\n"
+              << RESET;
+
+    medical.resolve();
+
+    std::cout << YELLOW
+              << "[*] Cancelling an already-resolved incident (invalid)...\n"
+              << RESET;
+
+    medical.cancel();
 
 
     // =====================================================
