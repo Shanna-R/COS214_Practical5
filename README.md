@@ -78,20 +78,16 @@ Provides a unified, simplified entry point (`EmergencyFacade`) that orchestrates
 |-- Makefile                  Project build instructions
 |-- Dockerfile                Docker environment
 |-- README.md                 Project documentation
-|
-|-- docs/
-    |
-    |-- diagrams/
-        |-- State diagram.jpg
-        |-- Mediator sequence diagram.jpg
-        |-- Command sequence diagram.jpg
-        |-- Facade sequence diagram.jpg
-        |-- Adapter sequence diagram.jpg
-        |-- Prac5.vpp
-        |-- Cos_214 PracDocument.docx
-        |-- Debugging Evidence.png
-        |-- GDB Evidence.png
-        |-- Valgrind Evidence.png
+|-- State diagram.jpg
+|-- Mediator sequence diagram.jpg
+|-- Command sequence diagram.jpg
+|-- Facade sequence diagram.jpg
+|-- Adapter sequence diagram.jpg
+|-- Prac5.vpp
+|-- Cos_214 PracDocument.docx
+|-- Debugging Evidence.png
+|-- Docker Evidence.png
+|-- Valgrind Evidence.png
 
 
 ## Building the Project
