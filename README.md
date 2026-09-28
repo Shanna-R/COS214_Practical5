@@ -71,7 +71,7 @@ Provides a unified, simplified entry point (`EmergencyFacade`) that orchestrates
 
 ```text
 214-Prac-5-group1/
-|
+|-- *.gitignore
 |-- *.cpp                     C++ source files
 |-- *.h                       C++ header files
 |-- main.cpp                  Program entry point
