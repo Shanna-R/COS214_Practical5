@@ -121,7 +121,7 @@ make clean
 make
 ```
 
-## Running TaskForge
+## Running CampusGuard
 
 After compiling the project:
 
