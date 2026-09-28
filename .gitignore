@@ -1,0 +1,6 @@
+*.o
+*.out
+CampusGuard
+coverage/
+.DS_Store
+.vscode/
