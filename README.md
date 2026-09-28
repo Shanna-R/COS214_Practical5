@@ -152,7 +152,7 @@ No project-specific development tools need to be installed directly on the host 
 From the root directory of the repository run:
 
 ```bash
-docker build -t CampusGuard.
+docker build -t CampusGuard .
 ```
 
 ### Open the Docker Environment
