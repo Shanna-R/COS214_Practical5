@@ -92,3 +92,153 @@ Provides a unified, simplified entry point (`EmergencyFacade`) that orchestrates
         |-- Debugging Evidence.png
         |-- GDB Evidence.png
         |-- Valgrind Evidence.png
+
+
+## Building the Project
+
+The final executable is named:
+
+```bash
+CampusGuard
+```
+
+The project can be compiled using:
+
+```bash
+make run
+```
+
+To remove generated object files and the executable:
+
+```bash
+make clean
+```
+
+To rebuild the complete project:
+
+```bash
+make clean
+make
+```
+
+## Running TaskForge
+
+After compiling the project:
+
+```bash
+./CampusGuard
+```
+
+## Docker
+
+The project includes a Docker environment containing the tools required to compile, run and debug CampusGuard.
+
+The Docker environment includes:
+
+```text
+g++
+make
+gdb
+valgrind
+lcov
+doxygen
+graphviz
+```
+
+No project-specific development tools need to be installed directly on the host computer.
+
+### Build the Docker Image
+
+From the root directory of the repository run:
+
+```bash
+docker build -t CampusGuard.
+```
+
+### Open the Docker Environment
+
+Run:
+
+```bash
+docker run --rm -it --entrypoint /bin/bash campusguard_app
+```
+
+Once inside the container, compile the project using:
+
+```bash
+make
+```
+
+Then run CampusGuard using:
+
+```bash
+./CampusGuard
+```
+
+## GDB
+To debug CampusGuard using GDB inside the Docker container, start the container with debugging permissions:
+```bash
+docker run --rm -it \--cap-add=SYS_PTRACE \--security-opt seccomp=unconfined \--entrypoint/bin/bash campusguard_app
+```
+
+To debug CampusGuard using GDB inside the Docker container:
+
+```bash
+gdb ./CampusGuard
+```
+
+Example useful GDB commands:
+
+```text
+break main
+run
+next
+step
+print variableName
+continue
+quit
+```
+
+## Valgrind
+
+To check the program for memory leaks and memory errors:
+
+```bash
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./CampusGuard
+```
+
+The final implementation should contain no definitely-lost memory originating from the project code.
+
+## UML Documentation
+
+The `docs/` directory contains the UML documentation for the project.
+
+The project includes:
+
+* UML Class Diagram
+* UML State Diagram
+* Three UML Sequence Diagrams
+
+The diagrams reflect the final C++ implementation and the runtime behaviour of CampusGuard.
+
+## GitHub Workflow
+
+Development is performed collaboratively using Git and GitHub.
+
+The `main` branch is protected. Team members should develop features on separate branches and create Pull Requests before merging changes into `main`.
+
+A Pull Request requires approval from at least one other team member before it can be merged.
+
+Example workflow:
+
+```bash
+git checkout -b feature-name
+```
+
+After making changes:
+
+```bash
+git add .
+git commit -m "Meaningful description of changes"
+git push -u origin feature-name
+```
