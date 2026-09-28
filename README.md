@@ -86,7 +86,7 @@ Provides a unified, simplified entry point (`EmergencyFacade`) that orchestrates
 |-- Prac5.vpp
 |-- Cos_214 PracDocument.docx
 |-- Debugging Evidence.png
-|-- Docker Evidence.png
+|-- GDB Evidence.png
 |-- Valgrind Evidence.png
 
 
@@ -156,7 +156,7 @@ docker build -t CampusGuard .
 Run:
 
 ```bash
-docker run --rm -it --entrypoint /bin/bash campusguard_app
+docker run --rm -it --entrypoint /bin/bash campusguard
 ```
 
 Once inside the container, compile the project using:
@@ -174,8 +174,13 @@ Then run CampusGuard using:
 ## GDB
 To debug CampusGuard using GDB inside the Docker container, start the container with debugging permissions:
 ```bash
-docker run --rm -it \--cap-add=SYS_PTRACE \--security-opt seccomp=unconfined \--entrypoint/bin/bash campusguard_app
+sudo docker run --rm -it --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --entrypoint /bin/bash campusguard
 ```
+compile the project :
+```bash
+make clean && make
+```
+
 
 To debug CampusGuard using GDB inside the Docker container:
 
@@ -190,7 +195,7 @@ break main
 run
 next
 step
-print variableName
+print fire
 continue
 quit
 ```
@@ -217,24 +222,4 @@ The project includes:
 
 The diagrams reflect the final C++ implementation and the runtime behaviour of CampusGuard.
 
-## GitHub Workflow
 
-Development is performed collaboratively using Git and GitHub.
-
-The `main` branch is protected. Team members should develop features on separate branches and create Pull Requests before merging changes into `main`.
-
-A Pull Request requires approval from at least one other team member before it can be merged.
-
-Example workflow:
-
-```bash
-git checkout -b feature-name
-```
-
-After making changes:
-
-```bash
-git add .
-git commit -m "Meaningful description of changes"
-git push -u origin feature-name
-```
